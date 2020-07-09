@@ -77,6 +77,7 @@ public class ReflectUtils {
 		Throwable throwable = null;
 		try {
 			privateLookupIn = (Method) AccessController.doPrivileged(new PrivilegedExceptionAction() {
+				@Override
 				public Object run() throws Exception {
 					try {
 						return MethodHandles.class.getMethod("privateLookupIn", Class.class, MethodHandles.Lookup.class);
@@ -87,6 +88,7 @@ public class ReflectUtils {
 				}
 			});
 			lookupDefineClass = (Method) AccessController.doPrivileged(new PrivilegedExceptionAction() {
+				@Override
 				public Object run() throws Exception {
 					try {
 						return MethodHandles.Lookup.class.getMethod("defineClass", byte[].class);
@@ -97,6 +99,7 @@ public class ReflectUtils {
 				}
 			});
 			classLoaderDefineClass = (Method) AccessController.doPrivileged(new PrivilegedExceptionAction() {
+				@Override
 				public Object run() throws Exception {
 					return ClassLoader.class.getDeclaredMethod("defineClass",
 							String.class, byte[].class, Integer.TYPE, Integer.TYPE, ProtectionDomain.class);
@@ -104,6 +107,7 @@ public class ReflectUtils {
 			});
 			protectionDomain = getProtectionDomain(ReflectUtils.class);
 			AccessController.doPrivileged(new PrivilegedExceptionAction() {
+				@Override
 				public Object run() throws Exception {
 					Method[] methods = Object.class.getDeclaredMethods();
 					for (Method method : methods) {
@@ -161,6 +165,7 @@ public class ReflectUtils {
 			return null;
 		}
 		return (ProtectionDomain) AccessController.doPrivileged(new PrivilegedAction() {
+			@Override
 			public Object run() {
 				return source.getProtectionDomain();
 			}
