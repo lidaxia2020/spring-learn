@@ -1,0 +1,8 @@
+
+
+DefaultListableBeanFactory核心类，是整个bean加载的核心部分，是spring注册及加载bean的默认实现
+XmlBeanDefinitionReader
+   1、通过继承AbstractBeanDefinitionReader中的方法，来使用ResourcLoader将资源文件路径转换为对应的Resource文件
+   2、通过DocumentLoader对Resource文件进行转换，将Resource文件转换为Document文件
+   3、通过实现接口BeanDefinitionDocumentReader的DefaultBeanDefinitionDocumentReader类对Document进行解析，并使用BeanDefinitionParserDelegate对Element进行解析
+   

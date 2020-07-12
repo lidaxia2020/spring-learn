@@ -53,6 +53,7 @@ public aspect JCacheCacheAspect extends JCacheAspectSupport {
 		Method method = methodSignature.getMethod();
 
 		CacheOperationInvoker aspectJInvoker = new CacheOperationInvoker() {
+			@Override
 			public Object invoke() {
 				try {
 					return proceed(cachedObject);

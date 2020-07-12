@@ -144,6 +144,7 @@ public class ClassPathResource extends AbstractFileResolvingResource {
 
 	/**
 	 * Resolves a URL for the underlying class path resource.
+	 *   解析为基础类路径资源的URL
 	 * @return the resolved URL, or {@code null} if not resolvable
 	 */
 	@Nullable
