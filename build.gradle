@@ -283,17 +283,19 @@ configure(allprojects) { project ->
 			cacheChangingModulesFor 0, "seconds"
 		}
 		repositories {
+			maven { url 'https://maven.aliyun.com/nexus/content/groups/public/' }
+			maven { url 'https://maven.aliyun.com/nexus/content/repositories/jcenter'}
 			mavenCentral()
 			maven { url "https://repo.spring.io/libs-spring-framework-build" }
 			maven { url "https://repo.spring.io/milestone" } // Reactor
 		}
 	}
-	configurations.all {
-		resolutionStrategy {
-			cacheChangingModulesFor 0, "seconds"
-			cacheDynamicVersionsFor 0, "seconds"
-		}
-	}
+//	configurations.all {
+//		resolutionStrategy {
+//			cacheChangingModulesFor 0, "seconds"
+//			cacheDynamicVersionsFor 0, "seconds"
+//		}
+//	}
 }
 
 configure([rootProject] + javaProjects) { project ->
