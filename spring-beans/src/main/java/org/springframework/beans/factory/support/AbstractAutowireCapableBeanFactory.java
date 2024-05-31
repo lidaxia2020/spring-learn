@@ -185,7 +185,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		super();
 		/**
 		 *  忽略给定接口的自动装配功能
-		 *当A中有属性B，那么当Spring在获取A的Bean的时候如果其属性B还没有初始化，
+		 *  当A中有属性B，那么当Spring在获取A的Bean的时候如果其属性B还没有初始化，
 		 * 那么Spring会自动初始化B，这也是Spring中提供的一个重要特性。
 		 * 但是，某些情况下，B不会被初始化，其中的一种情况就是B实现了BeanNameAware接口。
 		 * Spring中是这样介绍的：自动装配时忽略给定的依赖接口，
@@ -577,10 +577,12 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// Instantiate the bean.
 		// 实例化
 		BeanWrapper instanceWrapper = null;
+		//1、如果bean是单例，就先清除缓存中的bean信息
 		if (mbd.isSingleton()) {
 			instanceWrapper = this.factoryBeanInstanceCache.remove(beanName);
 		}
 		if (instanceWrapper == null) {
+			//2、根据指定bean使用对应的策略实例化bean，例如：工厂方法，构造函数自动注入，简单初始化
 			instanceWrapper = createBeanInstance(beanName, mbd, args);
 		}
 		Object bean = instanceWrapper.getWrappedInstance();
@@ -590,6 +592,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		// Allow post-processors to modify the merged bean definition.
+		//3、允许后处理处理器修改合并后的bean定义
 		synchronized (mbd.postProcessingLock) {
 			if (!mbd.postProcessed) {
 				try {
@@ -605,6 +608,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		// Eagerly cache singletons to be able to resolve circular references
 		// even when triggered by lifecycle interfaces like BeanFactoryAware.
+		//4、是否需要提前曝光，用来解决循环依赖时使用
 		boolean earlySingletonExposure = (mbd.isSingleton() && this.allowCircularReferences &&
 				isSingletonCurrentlyInCreation(beanName));
 		if (earlySingletonExposure) {
@@ -612,13 +616,17 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 				logger.trace("Eagerly caching bean '" + beanName +
 						"' to allow for resolving potential circular references");
 			}
+			// 第二个参数是回调接口，实现的功能是将切面动态织入 bean
 			addSingletonFactory(beanName, () -> getEarlyBeanReference(beanName, mbd, bean));
 		}
 
 		// Initialize the bean instance.
 		Object exposedObject = bean;
 		try {
+			//5、对 bean 进行填充，将各个属性值注入
+			// 如果存在对其它 bean 的依赖，将会递归初始化依赖的 bean
 			populateBean(beanName, mbd, instanceWrapper);
+			//6、调用初始化方法，例如 init-method
 			exposedObject = initializeBean(beanName, exposedObject, mbd);
 		}
 		catch (Throwable ex) {
@@ -631,20 +639,27 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			}
 		}
 
+		//7、循环依赖检查
 		if (earlySingletonExposure) {
 			Object earlySingletonReference = getSingleton(beanName, false);
+			// earlySingletonReference 只有在检测到有循环依赖的情况下才 不为空
 			if (earlySingletonReference != null) {
 				if (exposedObject == bean) {
+					// 如果 exposedObject 没有在初始化方法中被改变，也就是没有被增强
 					exposedObject = earlySingletonReference;
 				}
 				else if (!this.allowRawInjectionDespiteWrapping && hasDependentBean(beanName)) {
 					String[] dependentBeans = getDependentBeans(beanName);
 					Set<String> actualDependentBeans = new LinkedHashSet<>(dependentBeans.length);
 					for (String dependentBean : dependentBeans) {
+						// 检查依赖
 						if (!removeSingletonIfCreatedForTypeCheckOnly(dependentBean)) {
 							actualDependentBeans.add(dependentBean);
 						}
 					}
+					// bean 创建后，它所依赖的 bean 一定是已经创建了
+					// 在上面已经找到它有依赖的 bean，如果 actualDependentBeans 不为空
+					// 表示还有依赖的 bean 没有初始化完成，也就是存在循环依赖
 					if (!actualDependentBeans.isEmpty()) {
 						throw new BeanCurrentlyInCreationException(beanName,
 								"Bean with name '" + beanName + "' has been injected into other beans [" +
@@ -660,6 +675,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		// Register bean as disposable.
 		try {
+			// 8、根据 scope 注册 bean
 			registerDisposableBeanIfNecessary(beanName, bean, mbd);
 		}
 		catch (BeanDefinitionValidationException ex) {
